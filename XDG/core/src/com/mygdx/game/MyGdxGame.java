@@ -19,12 +19,19 @@ public class MyGdxGame extends ApplicationAdapter {
 	Player 	player;
 	ArrayList<Bullet> bullets;
 	ArrayList<Enemy> enemies;
+
+	ArrayList<SpiderEnemy> enemySpiders;
+	ArrayList<AlienEnemy> enemyAliens;
+	ArrayList<ShipEnemy> enemyShips;
+	ArrayList<BulletAlien> bulletAliens;
+	ArrayList<BulletEnemyShip> bulletEnemyShips;
 	int bullet_stop;
 	float elepsedTime;
 	Random random;
 
 	int spownTimer;
 	int spownTimerAlien;
+	int spownTimerShip;
 
 	BitmapFont font;
 	BitmapFont fontEnterEsc;
@@ -36,11 +43,19 @@ public class MyGdxGame extends ApplicationAdapter {
 		player = new Player();
 		bullets = new ArrayList<Bullet>();
 		enemies = new ArrayList<Enemy>();
+
+		enemySpiders = new ArrayList<SpiderEnemy>();
+		enemyAliens = new ArrayList<AlienEnemy>();
+		enemyShips = new ArrayList<ShipEnemy>();
+
+		bulletAliens = new ArrayList<BulletAlien>();
+		bulletEnemyShips = new ArrayList<BulletEnemyShip>();
 		//enemies.add(new SpiderEnemy(40, 700));
 		bullet_stop = 8;
 		random = new Random(0);
 		spownTimer = 0;
 		spownTimerAlien = 10;
+		spownTimerShip = 20;
 		font = new BitmapFont(Gdx.files.internal("./font/gameover.fnt"));
 		fontEnterEsc = new BitmapFont(Gdx.files.internal("./font/enteresc.fnt"));
 
@@ -61,31 +76,64 @@ public class MyGdxGame extends ApplicationAdapter {
 			if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE))
 				player.setLive(0);
 
-			if (--spownTimerAlien <= 0) {
-				enemies.add(new AlienEnemy(random.nextInt(720), 1400));
-				spownTimerAlien = random.nextInt(150);
+			if (--spownTimer <= 0) {
+				enemySpiders.add(new SpiderEnemy(random.nextInt(740), 1400));
+				spownTimer = random.nextInt(30);
 			}
 
-			if (--spownTimer <= 0) {
-				enemies.add(new SpiderEnemy(random.nextInt(740), 1400));
-				spownTimer = random.nextInt(30);
+			if (--spownTimerAlien <= 0) {
+				enemyAliens.add(new AlienEnemy(random.nextInt(720), 1400));
+				spownTimerAlien = random.nextInt(260);
+			}
+
+			if (--spownTimerShip <= 0) {
+				enemyShips.add(new ShipEnemy(80 + random.nextInt(670), 1400));
+				spownTimerShip = random.nextInt(500);
 			}
 
 
 		//enemies.get(0).render(batch);
 		//batch.draw((TextureRegion) enemies.get(0).animation.getKeyFrame(elepsedTime, true), enemies.get(0).pos.x, enemies.get(0).pos.y);
-
-			for (int i = 0; i < enemies.size(); i++) {
-				enemies.get(i).render(batch, elepsedTime);
-				if (enemies.get(i).getCollision().CollisionCheck(player.getCollision())) {
-					player.setLive(player.getLive() - 10);
-					enemies.get(i).remove = true;
-				}
+			for (int i = 0; i < enemySpiders.size(); i++) {
+				enemySpiders.get(i).render(batch, elepsedTime);
+				enemySpiders.get(i).checkRemove(player);
 				for (int k = 0; k < bullets.size(); k++) {
-					if (bullets.get(k).getCollision().CollisionCheck(enemies.get(i).getCollision())) {
-						bullets.get(k).remove = true;
-						enemies.get(i).remove = true;
-						player.setScore(enemies.get(i).getScore() + player.getScore());
+					if (bullets.get(k).getCollision().CollisionCheck(enemySpiders.get(i).getCollision())) {
+						bullets.get(k).checkRemove(enemySpiders.get(i), player);
+					}
+				}
+			}
+			for (int i = 0; i < bulletAliens.size(); i++) {
+				bulletAliens.get(i).render(batch, elepsedTime);
+			}
+
+			for (int i = 0; i < bulletEnemyShips.size(); i++) {
+				bulletEnemyShips.get(i).render(batch);
+			}
+
+			for (int i = 0; i < enemyAliens.size(); i++) {
+				if (enemyAliens.get(i).getStopBullet() == 0) {
+					bulletAliens.add(new BulletAlien(enemyAliens.get(i).getPos().x + 40, enemyAliens.get(i).getPos().y));
+					enemyAliens.get(i).setStopBullet(50);
+				}
+				enemyAliens.get(i).render(batch, elepsedTime);
+				enemyAliens.get(i).checkRemove(player);
+				for (int k = 0; k < bullets.size(); k++) {
+					bullets.get(k).checkRemove(enemyAliens.get(i), player);
+				}
+			}
+
+			for (int i = 0; i < enemyShips.size(); i++) {
+				if (enemyShips.get(i).getStopBullet() == 0) {
+					bulletEnemyShips.add(new BulletEnemyShip(enemyShips.get(i).getPos().x + 10, enemyShips.get(i).getPos().y));
+					bulletEnemyShips.add(new BulletEnemyShip(enemyShips.get(i).getPos().x + 70, enemyShips.get(i).getPos().y));
+					enemyShips.get(i).setStopBullet(80);
+				}
+				enemyShips.get(i).render(batch);
+				enemyShips.get(i).checkRemove(player);
+				for (int k = 0; k < bullets.size(); k++) {
+					if (bullets.get(k).getCollision().CollisionCheck(enemyShips.get(i).getCollision())) {
+						bullets.get(k).checkRemove(enemyShips.get(i), player);
 					}
 				}
 			}
@@ -98,6 +146,7 @@ public class MyGdxGame extends ApplicationAdapter {
         	for(int i = 0; i < bullets.size(); i++) {
             	bullets.get(i).render(batch);
         	}
+
 			player.render(batch);
 			batch.draw(new Texture("medical.png"), 10, 10);
 		}
@@ -106,10 +155,13 @@ public class MyGdxGame extends ApplicationAdapter {
 			fontEnterEsc.draw(batch, String.format("Your score\n%8d", player.getScore()), 320, 570);
 			fontEnterEsc.draw(batch, "Press \"Enter\" to restart", 210, 510);
 			fontEnterEsc.draw(batch, "Press \"q\" to quit", 270, 480);
-			for (int i = 0; i < enemies.size(); i++)
-				enemies.remove(enemies.get(i));
-			for (int i = 0; i < bullets.size(); i++)
-				bullets.remove(bullets.get(i));
+
+			bulletAliens.removeAll(bulletAliens);
+			bulletEnemyShips.removeAll(bulletEnemyShips);
+			enemyShips.removeAll(enemyShips);
+			enemyAliens.removeAll(enemyAliens);
+			enemySpiders.removeAll(enemySpiders);
+			bullets.removeAll(bullets);
 			if (Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
 				player.setLive(100);
 				player.setScore(0);
@@ -127,15 +179,40 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (player.getLive() > 0) {
 			player.update();
 
+
+			for (int i = 0; i < bulletEnemyShips.size(); i++) {
+				bulletEnemyShips.get(i).checkPlayerCollision(player);
+				bulletEnemyShips.get(i).update();
+				if (bulletEnemyShips.get(i).remove)
+					bulletEnemyShips.remove(bulletEnemyShips.get(i));
+			}
+			for (int i = 0; i < bulletAliens.size(); i++) {
+				bulletAliens.get(i).checkPlayerCollision(player);
+				bulletAliens.get(i).update();
+				if (bulletAliens.get(i).remove)
+					bulletAliens.remove(bulletAliens.get(i));
+			}
 			for (int i = 0; i < bullets.size(); i++) {
 				bullets.get(i).update();
 				if (bullets.get(i).remove)
 					bullets.remove(bullets.get(i));
 			}
-			for (int i = 0; i < enemies.size(); i++) {
-				enemies.get(i).update();
-				if (enemies.get(i).remove)
-					enemies.remove(enemies.get(i));
+
+
+			for (int i = 0; i < enemyShips.size(); i++) {
+				enemyShips.get(i).update();
+				if (enemyShips.get(i).remove)
+					enemyShips.remove(enemyShips.get(i));
+			}
+			for (int i = 0; i < enemyAliens.size(); i++) {
+				enemyAliens.get(i).update();
+				if (enemyAliens.get(i).remove)
+					enemyAliens.remove(enemyAliens.get(i));
+			}
+			for (int i = 0; i < enemySpiders.size(); i++) {
+				enemySpiders.get(i).update();
+				if (enemySpiders.get(i).remove)
+					enemySpiders.remove(enemySpiders.get(i));
 			}
 		}
 	}

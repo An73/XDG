@@ -8,12 +8,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 public class Player {
-    Texture tx;
+    private Texture tx;
     private Vector2 pos;
     private int     live;
     private String  strLive;
     private int     score;
-    Collision collision;
+    private Collision collision;
     final private int SPEED = 7;
 
     BitmapFont font;
@@ -24,7 +24,7 @@ public class Player {
         tx = new Texture("1B.png");
         pos = new Vector2(370, 100);
         live = 100;
-        collision = new Collision(65, 71, pos.x, pos.y);
+        collision = new Collision(71, 45, pos.x, pos.y);
         strLive = new String(Integer.toString(live));
         font = new BitmapFont(Gdx.files.internal("./font/fontlive.fnt"));
         fontScore = new BitmapFont(Gdx.files.internal("./font/score.fnt"));

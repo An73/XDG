@@ -24,9 +24,10 @@ public class SpiderEnemy extends Enemy {
         textureAnimation[4] = textureSplit[4][3];
         textureAnimation[5] = textureSplit[4][2];
 
-        animation = new Animation(1f/6f, textureAnimation);
+        animation = new Animation(1f/8f, textureAnimation);
 
-        collision = new Collision(64, 64, x, y);
+        collision = new Collision(44, 44, x, y);
+        live = 0;
     }
 
     @Override
@@ -37,6 +38,21 @@ public class SpiderEnemy extends Enemy {
     @Override
     public int getScore(){
         return SCORE;
+    }
+
+    @Override
+    public void checkRemove(Player player){
+        if (collision.CollisionCheck(player.getCollision())) {
+            player.setLive(player.getLive() - 10);
+            remove = true;
+        }
+    }
+    @Override
+    public void update() {
+        move();
+        collision.update(pos.x, pos.y);
+        if (pos.y < -64)
+            remove = true;
     }
 
     /*public void animation() {

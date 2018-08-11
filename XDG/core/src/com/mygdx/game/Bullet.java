@@ -32,4 +32,17 @@ public class Bullet {
     public Collision getCollision() {
         return collision;
     }
+
+    public void checkRemove(Enemy enemy, Player player) {
+        if (collision.CollisionCheck((enemy.getCollision()))) {
+            if (enemy.getLive() == 0) {
+                enemy.setRemove(true);
+                player.setScore(enemy.getScore() + player.getScore());
+            }
+            else {
+                enemy.setLive(enemy.getLive() - 1);
+            }
+            remove = true;
+        }
+    }
 }

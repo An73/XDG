@@ -12,12 +12,12 @@ import com.badlogic.gdx.math.Vector2;
 public class Enemy {
     protected Vector2 pos;
     protected int live = 10;
-    Texture tx;
-    TextureRegion textureAnimation[];
-    Animation animation;
-    TextureRegion textureSplit[][];
-    public boolean remove = false;
-    Collision collision;
+    protected Texture tx;
+    protected TextureRegion textureAnimation[];
+    protected Animation animation;
+    protected TextureRegion textureSplit[][];
+    protected boolean remove = false;
+    protected Collision collision;
 
 
     protected Enemy(int x, int y) {
@@ -45,6 +45,10 @@ public class Enemy {
         batch.draw((TextureRegion) animation.getKeyFrame(elepsedTime, true), pos.x, pos.y);
     }
 
+    public void render(SpriteBatch batch) {
+        batch.draw(tx, pos.x, pos.y);
+    }
+
     public void update() {
         move();
         collision.update(pos.x, pos.y);
@@ -56,8 +60,15 @@ public class Enemy {
         return collision;
     }
 
-    public int getScore(){
+    protected int getScore(){
         return 0;
+    }
+
+    protected void checkRemove(Player player) {
+    }
+
+    public void setRemove(boolean remove) {
+        this.remove = remove;
     }
 }
 
